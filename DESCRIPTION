@@ -1,0 +1,20 @@
+Package: ghelper
+Type: Package
+Title: Genomics Helper Functions
+Version: 0.1
+Date: 2016-04-18
+Author: Weixiang Fang
+Maintainer: Weixiang Fang <wfang9@jhmi.edu>
+Description: Genomics Helper Functions
+License: Creative Commons
+LazyData: TRUE
+Imports:
+    Rcpp (>= 0.12.4),
+    GenomicRanges,
+    GenomicAlignments,
+    rtracklayer,
+    R.utils,
+    tools,
+    RColorBrewer
+LinkingTo: Rcpp
+RoxygenNote: 5.0.1
