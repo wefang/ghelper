@@ -293,7 +293,7 @@ pca.reduce <- function(mat, pcadim = NULL){
     pca.red
 }
 
-#' wrapper of \link{image} with additional features
+#' Wrapper of \link{image} with additional features
 #'
 #' @export
 #' @importFrom RColorBrewer brewer.pal
