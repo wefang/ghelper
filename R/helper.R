@@ -295,7 +295,7 @@ pca.reduce <- function(mat, pcadim = NULL){
 
 #' Wrapper of \link{image} with additional features
 #'
-#' @export
+#' @export image.na
 #' @importFrom RColorBrewer brewer.pal
 image.na <- function(z,  zlim, col = colorRampPalette(brewer.pal(9,"Blues"))(1000), na.color = grey.colors(1, 0.95),
                      row.side = NULL, row.side.col = brewer.pal(8, "Dark2"),
