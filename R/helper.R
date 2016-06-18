@@ -152,7 +152,7 @@ aveMatFac <- function(mat, fac){
     out <- matrix(, rown, coln)
     ind <- as.numeric(fac)
     for (i in 1:rown){
-        out[i, ] <- colMeans(mat[ind == i, , drop = F])
+        out[i, ] <- colMeans(mat[ind == i, , drop = F], na.rm = T)
     }
     rownames(out) <- levels(fac)
     return(out)
