@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{make.bins.gr}
 \alias{make.bins.gr}
-\title{Create \link{GRanges} object for bins.}
+\title{Create a \code{\link{GRanges}} object for bins.}
 \usage{
 make.bins.gr(chrlen.file, bin.width)
 }
@@ -12,6 +12,6 @@ make.bins.gr(chrlen.file, bin.width)
 \item{bin.width}{Bin width}
 }
 \description{
-Create \link{GRanges} object for bins.
+Create a \code{\link{GRanges}} object for bins.
 }
 

@@ -8,9 +8,10 @@ load.chrlen <- function(chrlen.file, bin.width = 50){
     assign("chr.len", scan(chrlen.file), envir = .GlobalEnv)
     assign("bin.counts", ceiling(chr.len/bin.width), envir = .GlobalEnv)
     assign("bin.from", c(0, cumsum(bin.counts[1:23])), envir = .GlobalEnv)
+    message(paste("loaded chromosome lengths for bin width:", bin.width))
 }
 
-#' Create \link{GRanges} object for bins.
+#' Create a \code{\link{GRanges}} object for bins.
 #'
 #' @param chrlen.file Text file for chromosome length
 #' @param bin.width Bin width
