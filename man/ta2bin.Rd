@@ -2,14 +2,14 @@
 % Please edit documentation in R/helper.R
 \name{ta2bin}
 \alias{ta2bin}
-\title{Convert bam files to bin counts}
+\title{Convert tagAlign files to bin counts}
 \usage{
-ta2bin(ta.file, chrlen.file, bin.width)
+ta2bin(ta.file, ...)
 }
 \arguments{
-\item{bam.file}{bam file}
+\item{ta.file}{bam The tagAlign file to be converted.}
 }
 \description{
-Convert bam files to bin counts
+Convert tagAlign files to bin counts
 }
 

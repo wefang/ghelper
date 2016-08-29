@@ -4,10 +4,13 @@
 \alias{countReads}
 \title{Count reads in bins from GeonomicAlignments object.}
 \usage{
-countReads(align, chrlen.file, bin.width, counts = NULL)
+countReads(align, chrlen.file, chr.count, bin.width, paired = F,
+  counts = NULL)
 }
 \arguments{
-\item{align}{GenomicAlignments (link) Object}
+\item{align}{A \code{\link{GenomicAlignments}} object.}
+
+\item{paried}{A logical value indicating if alignment object is paired.}
 }
 \description{
 Count reads in bins from GeonomicAlignments object.

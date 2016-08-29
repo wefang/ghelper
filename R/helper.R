@@ -3,12 +3,11 @@
 #' @param chrlen.file Text file for chromosome length
 #' @param bin.width Bin width
 #' @export
-#' @importFrom GenomicRanges GRanges
 load.chrlen <- function(chrlen.file, bin.width = 50){
-    assign("chr.len", scan(chrlen.file), envir = .GlobalEnv)
-    assign("bin.counts", ceiling(chr.len/bin.width), envir = .GlobalEnv)
-    assign("bin.from", c(0, cumsum(bin.counts[1:23])), envir = .GlobalEnv)
-    message(paste("loaded chromosome lengths for bin width:", bin.width))
+    message(paste("loading chromosome bin lengths for bin width:", bin.width))
+    assign("chr.len", scan(chrlen.file, quiet = T), envir = .GlobalEnv)
+    assign("bin.counts", ceiling(chr.len / bin.width), envir = .GlobalEnv)
+    assign("bin.from", c(0, cumsum(bin.counts)), envir = .GlobalEnv)
 }
 
 #' Create a \code{\link{GRanges}} object for bins.
@@ -36,7 +35,7 @@ make.bins.gr <- function(chrlen.file, bin.width){
 #' @param bin Base pair indices
 #' @param bin.width Bin width
 #' @export
-bp2bin <- function(bp, bin.width = 50){
+bp2bin <- function(bp, bin.width){
         ceiling(bp / bin.width)
 }
 
@@ -194,41 +193,64 @@ perm.mat.multi <- function(...){
 
 #' Count reads in bins from GeonomicAlignments object.
 #'
-#' @param align GenomicAlignments (link) Object
+#' @param align A \code{\link{GenomicAlignments}} object.
+#' @param paried A logical value indicating if alignment object is paired.
 #' @export
-#' @importFrom GenomicRanges seqnames
+#' @importFrom GenomicRanges seqnames start end
 #' @useDynLib ghelper ghelper_count_bins
-countReads <- function(align, chrlen.file, bin.width, counts = NULL){
+countReads <- function(align, chrlen.file, chr.count, bin.width, paired = F, counts = NULL){
+
     load.chrlen(chrlen.file, bin.width)
-    if (is.null(counts)) counts <- numeric(bin.from[24])
-    mid <- ceiling((start(align) + end(align)) / 2)
-    bin.gw <- chr2gw(seqnames(align), bp2bin(mid, bin.width))
+    if (is.null(counts)) counts <- numeric(bin.from[chr.count + 1])
+
+    message("converting coordinates...")
+    if (paired){
+         rstart <- pmin(start(align@first), start(align@last))
+         rend <- pmax(end(align@first), end(align@last))
+    } else {
+         rstart <- start(align)
+         rend <- end(align)
+    }
+    ctr <- ceiling((rstart + rend) / 2)
+    bin.gw <- chr2gw(seqnames(align), bp2bin(ctr, bin.width))
+
+    message("counting...")
     count_bins(counts, bin.gw)
 }
 
 #' Convert bam files to bin counts
 #'
-#' @param bam.file bam file
+#' @param bam.file The bam file to be converted.
 #' @export
 #' @importFrom GenomicAlignments readGAlignments
-bam2bin <- function(bam.file, chrlen.file, bin.width){
+bam2bin <- function(bam.file, ...){
+    message("reading alignment file...")
     alignment <- readGAlignments(bam.file)
-    countReads(alignment, chrlen.file, bin.width)
+    message(paste("number of tags:", length(alignment)))
+    countReads(alignment, ...)
 }
 
-#' Convert bam files to bin counts
+#' Convert bam files to bin counts for paired samples 
 #'
-#' @param bam.file bam file
+#' @param bam.file The bam file to be converted.
 #' @export
-#' @importFrom R.utils gunzip
+#' @importFrom GenomicAlignments readGAlignmentPairs
+bam2bin_paired <- function(bam.file, ...){
+    message("reading alignment file...")
+    alignment <- readGAlignmentPairs(bam.file)
+    message(paste("number of pairs:", length(alignment)))
+    countReads(alignment, paired = T, ...)
+}
+
+#' Convert tagAlign files to bin counts
+#'
+#' @param ta.file bam The tagAlign file to be converted.
+#' @export
 #' @importFrom rtracklayer import.bed
-#' @importFrom tools file_ext
-ta2bin <- function(ta.file, chrlen.file, bin.width){
-    #     if (file_ext(ta.file) == "gz"){
-    #         ta.file <- gunzip(ta.file, temporary = T, remove = F)
-    #     }
+ta2bin <- function(ta.file, ...){
     alignment <- import.bed(ta.file)
-    countReads(alignment, chrlen.file, bin.width)
+    message(paste("number of tags:", length(alignment)))
+    countReads(alignment, ...)
 }
 
 #' Calculate empirical p-values

@@ -4,10 +4,10 @@
 \alias{bam2bin}
 \title{Convert bam files to bin counts}
 \usage{
-bam2bin(bam.file, chrlen.file, bin.width)
+bam2bin(bam.file, ...)
 }
 \arguments{
-\item{bam.file}{bam file}
+\item{bam.file}{The bam file to be converted.}
 }
 \description{
 Convert bam files to bin counts

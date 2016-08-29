@@ -4,7 +4,7 @@
 \alias{bp2bin}
 \title{Convert base pair indices to bin indices}
 \usage{
-bp2bin(bp, bin.width = 50)
+bp2bin(bp, bin.width)
 }
 \arguments{
 \item{bin.width}{Bin width}
