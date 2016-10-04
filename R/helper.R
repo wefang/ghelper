@@ -1,9 +1,12 @@
 #' Load chromosome length and bin counts into global environment
 #'
 #' @param chrlen.file Text file for chromosome length
-#' @param bin.width Bin width
+#' @param bin.width The bin width.
 #' @export
-load.chrlen <- function(chrlen.file, bin.width = 50){
+load.chrlen <- function(chrlen.file, bin.width){
+    if (exists("bin.from", envir = .GlobalEnv) &
+        exists("bin.counts", envir = .GlobalEnv)) return(NULL)
+    
     message(paste("loading chromosome bin lengths for bin width:", bin.width))
     assign("chr.len", scan(chrlen.file, quiet = T), envir = .GlobalEnv)
     assign("bin.counts", ceiling(chr.len / bin.width), envir = .GlobalEnv)
@@ -16,17 +19,21 @@ load.chrlen <- function(chrlen.file, bin.width = 50){
 #' @param bin.width Bin width
 #' @export
 #' @importFrom GenomicRanges GRanges
-make.bins.gr <- function(chrlen.file, bin.width){
+#' @importFrom IRanges IRanges
+#' @importFrom S4Vectors Rle
+make.bins.gr <- function(chrlen.file, bin.width, chr.count){
     load.chrlen(chrlen.file, bin.width)
-    range.start <- unlist(lapply(bin.counts[1:23], function(count){
+    range.start <- unlist(lapply(bin.counts[1:chr.count], function(count) {
                                      seq(from = 1, by = bin.width, length = count)
 }))
     range.end <- range.start + bin.width -1
-    for (chr in 1:23){
+    # fix the last bin of each chr
+    for (chr in 1:chr.count){
         range.end[bin.from[chr+1]] <- chr.len[chr]
     }
-    gr <- GRanges(seqnames = Rle(paste0("chr", c(1:22, "X")), bin.counts[1:23]),
-                  ranges = IRanges(range.start, end = range.end))
+    # only works for human as of now
+    gr <- GRanges(seqnames = Rle(paste0("chr", c(1:22, "X")), bin.counts[1:chr.count]),
+                  ranges = IRanges(start = range.start, end = range.end))
     return(gr)
 }
 
@@ -77,15 +84,13 @@ chr2num <- function(c){
 #'
 #' @export
 seq2num <- function(seq){
-    # may need to adjust if original levels are not ordered
     if (is.character(seq)) seq <- factor(seq, levels = paste0("chr", c(1:22, "X", "Y", "M")))
     l <- levels(seq)
     l <- gsub("chr", "", l)
     l[l == "X"] <- "23"
-
     l[l == "Y" | l == "M"] <- NA
     levels(seq) <- l
-    as.numeric(seq)
+    as.numeric(levels(seq))[as.numeric(seq)]
 }
 
 #' Convert vector of genome wide bin indices to a list of indices per chromosome.
@@ -203,7 +208,6 @@ countReads <- function(align, chrlen.file, chr.count, bin.width, paired = F, cou
     load.chrlen(chrlen.file, bin.width)
     if (is.null(counts)) counts <- numeric(bin.from[chr.count + 1])
 
-    message("converting coordinates...")
     if (paired){
          rstart <- pmin(start(align@first), start(align@last))
          rend <- pmax(end(align@first), end(align@last))
@@ -214,7 +218,6 @@ countReads <- function(align, chrlen.file, chr.count, bin.width, paired = F, cou
     ctr <- ceiling((rstart + rend) / 2)
     bin.gw <- chr2gw(seqnames(align), bp2bin(ctr, bin.width))
 
-    message("counting...")
     count_bins(counts, bin.gw)
 }
 
@@ -222,24 +225,28 @@ countReads <- function(align, chrlen.file, chr.count, bin.width, paired = F, cou
 #'
 #' @param bam.file The bam file to be converted.
 #' @export
-#' @importFrom GenomicAlignments readGAlignments
-bam2bin <- function(bam.file, ...){
-    message("reading alignment file...")
-    alignment <- readGAlignments(bam.file)
-    message(paste("number of tags:", length(alignment)))
-    countReads(alignment, ...)
-}
-
-#' Convert bam files to bin counts for paired samples 
-#'
-#' @param bam.file The bam file to be converted.
-#' @export
-#' @importFrom GenomicAlignments readGAlignmentPairs
-bam2bin_paired <- function(bam.file, ...){
-    message("reading alignment file...")
-    alignment <- readGAlignmentPairs(bam.file)
-    message(paste("number of pairs:", length(alignment)))
-    countReads(alignment, paired = T, ...)
+#' @importFrom GenomicAlignments readGAlignments readGAlignmentPairs
+#' @importFrom Rsamtools BamFile
+bam2bin <- function(bam.file, chrlen.file, chr.count, bin.width, paired = F, ...){
+    if (is.character(bam.file)){
+        bam.file <- BamFile(bam.file, ...)
+    }
+    open(bam.file)
+    out <- NULL
+    repeat {
+        if (paired) {
+            alignment <- readGAlignmentPairs(bam.file)
+        } else {
+            alignment <- readGAlignments(bam.file)
+        }
+        if (length(alignment) == 0L){
+            break
+        }
+        out <- countReads(alignment, chrlen.file = chrlen.file, chr.count = chr.count, bin.width = bin.width,
+                          paired = paired, counts = out)
+    }
+    close(bam.file)
+    out
 }
 
 #' Convert tagAlign files to bin counts
@@ -318,7 +325,7 @@ pca.reduce <- function(mat, pcadim = NULL){
 
 #' Wrapper of \link{image} with additional features
 #'
-#' @export image.na
+#' @export
 #' @importFrom RColorBrewer brewer.pal
 image.na <- function(z,  zlim, col = colorRampPalette(brewer.pal(9,"Blues"))(1000), na.color = grey.colors(1, 0.95),
                      row.side = NULL, row.side.col = brewer.pal(8, "Dark2"),
@@ -355,7 +362,7 @@ image.na <- function(z,  zlim, col = colorRampPalette(brewer.pal(9,"Blues"))(100
 
     # side indicator
     if (!is.null(row.side)) {
-        layout(matrix(1:2, 1), widths = c(1, 9))
+        layout(matrix(1:2, 1), widths = c(2, 9))
         par(mar = c(2, 2, 2 ,2))
         image(x = 1, y = 1:length(row.side), z = matrix(row.side[col.ord], 1), zlim = c(1, max(row.side)),
               col = row.side.col, xlab = "", ylab = "", axes = F)

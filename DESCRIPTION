@@ -12,6 +12,8 @@ Imports:
     Rcpp (>= 0.12.4),
     GenomicRanges,
     GenomicAlignments,
+    IRanges,
+    S4Vectors,
     rtracklayer,
     R.utils,
     tools,

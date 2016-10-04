@@ -4,7 +4,7 @@
 \alias{make.bins.gr}
 \title{Create a \code{\link{GRanges}} object for bins.}
 \usage{
-make.bins.gr(chrlen.file, bin.width)
+make.bins.gr(chrlen.file, bin.width, chr.count)
 }
 \arguments{
 \item{chrlen.file}{Text file for chromosome length}

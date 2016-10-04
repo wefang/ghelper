@@ -4,12 +4,12 @@
 \alias{load.chrlen}
 \title{Load chromosome length and bin counts into global environment}
 \usage{
-load.chrlen(chrlen.file, bin.width = 50)
+load.chrlen(chrlen.file, bin.width)
 }
 \arguments{
 \item{chrlen.file}{Text file for chromosome length}
 
-\item{bin.width}{Bin width}
+\item{bin.width}{The bin width.}
 }
 \description{
 Load chromosome length and bin counts into global environment
