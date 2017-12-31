@@ -4,7 +4,7 @@
 \alias{seq2num}
 \title{Convert seqnames to numeric chromosome indices. chrX mapped to 23; chrM and chrY mapped to NAs.}
 \usage{
-seq2num(seq)
+seq2num(seq, chrlen_df)
 }
 \description{
 Convert seqnames to numeric chromosome indices. chrX mapped to 23; chrM and chrY mapped to NAs.

@@ -4,8 +4,8 @@
 \alias{image.na}
 \title{Wrapper of \link{image} with additional features}
 \usage{
-\method{image}{na}(z, zlim, col = colorRampPalette(brewer.pal(9,
-  "Blues"))(1000), na.color = grey.colors(1, 0.95), row.side = NULL,
+image.na(z, zlim, col = colorRampPalette(brewer.pal(9, "Blues"))(1000),
+  na.color = grey.colors(1, 0.95), row.side = NULL,
   row.side.col = brewer.pal(8, "Dark2"), row.lab = NULL,
   row.lab.col = NULL, row.clust = F, col.clust = F,
   outside.below.color = "black", outside.above.color = "white",

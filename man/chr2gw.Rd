@@ -4,7 +4,7 @@
 \alias{chr2gw}
 \title{Convert chromosome bin indices to genome wide bin indices.}
 \usage{
-chr2gw(chr, bins)
+chr2gw(chr, bins, chrlen_df, bin.width)
 }
 \arguments{
 \item{chr}{vector of chr (Rle)}
