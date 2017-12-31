@@ -12,4 +12,3 @@ bam2bin(bam.file, chrlen.file, chr.count, bin.width, paired = F, ...)
 \description{
 Convert bam files to bin counts
 }
-

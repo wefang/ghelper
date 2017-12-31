@@ -9,4 +9,3 @@ chr2num(c)
 \description{
 Convert seqnames to numeric chromosome indices. Old. For the new one, see seq2num.
 }
-

@@ -9,4 +9,3 @@ aveMatFac(mat, fac)
 \description{
 Average matrix rows based on a factor
 }
-

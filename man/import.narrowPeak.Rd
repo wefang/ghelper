@@ -12,4 +12,3 @@ import.narrowPeak(f)
 \description{
 Imports narrowPeak files
 }
-

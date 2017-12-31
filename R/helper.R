@@ -3,12 +3,16 @@
 #' @param chrlen.file Text file for chromosome length
 #' @param bin.width The bin width.
 #' @export
-load.chrlen <- function(chrlen.file, bin.width){
-    if (exists("bin.from", envir = .GlobalEnv) &
-        exists("bin.counts", envir = .GlobalEnv)) return(NULL)
-    
+load.chrlen <- function(chrlen_vec, bin.width){
+    if (exists("chr.len", envir = .GlobalEnv)){
+      if (identical(chr.len, chrlen_df$X2)) {
+        if (ceiling(chr.len[1]/bin.counts[1]) == bin.width) return(NULL)
+      }
+    }
+    # when given a file
+    # scan(chrlen.file, quiet = T)
     message(paste("loading chromosome bin lengths for bin width:", bin.width))
-    assign("chr.len", scan(chrlen.file, quiet = T), envir = .GlobalEnv)
+    assign("chr.len", chrlen_vec, envir = .GlobalEnv)
     assign("bin.counts", ceiling(chr.len / bin.width), envir = .GlobalEnv)
     assign("bin.from", c(0, cumsum(bin.counts)), envir = .GlobalEnv)
 }
@@ -83,14 +87,9 @@ chr2num <- function(c){
 #' Convert seqnames to numeric chromosome indices. chrX mapped to 23; chrM and chrY mapped to NAs.
 #'
 #' @export
-seq2num <- function(seq){
-    if (is.character(seq)) seq <- factor(seq, levels = paste0("chr", c(1:22, "X", "Y", "M")))
-    l <- levels(seq)
-    l <- gsub("chr", "", l)
-    l[l == "X"] <- "23"
-    l[l == "Y" | l == "M"] <- NA
-    levels(seq) <- l
-    as.numeric(levels(seq))[as.numeric(seq)]
+seq2num <- function(seq, chrlen_df){
+    if (is.character(seq)) seq <- factor(seq, levels = chrlen_df$X1)
+    as.numeric(seq)
 }
 
 #' Convert vector of genome wide bin indices to a list of indices per chromosome.
@@ -135,12 +134,10 @@ list2gw <- function(bins.ls, bin.width = 200){
 #' @param chr vector of chr (Rle)
 #' @param bins vector of bins
 #' @export
-chr2gw <- function(chr, bins){
-    if (!exists("bin.from") | !exists("bin.counts")){
-        stop("please load chr.len first")
-    }
+chr2gw <- function(chr, bins, chrlen_df, bin.width){
     # check if chr is numeric
-    if (!is.numeric(chr)) chr <- seq2num(chr)
+    load.chrlen(chrlen_df$X2, bin.width)
+    if (!is.numeric(chr)) chr <- seq2num(chr, chrlen_df)
     bins <- bins[!is.na(chr)]
     chr <- chr[!is.na(chr)]
     bin.from[chr] + bins
@@ -247,6 +244,35 @@ bam2bin <- function(bam.file, chrlen.file, chr.count, bin.width, paired = F, ...
     }
     close(bam.file)
     out
+}
+
+#' Convert reads saved as list of data.frames to counts
+#'
+#' @export
+#' @useDynLib ghelper ghelper_count_bins
+df2bin <- function(df, chrlen_df, bin_width, paired = F, counts = NULL) {
+  stopifnot(all(chrlen_df$X1 %in% names(df)))
+  df <- df[chrlen_df$X1]
+  
+  load.chrlen(chrlen_df$X2, bin_width)
+  reads_gw <- lapply(1:nrow(chrlen_df), function(i) {
+    if (paired) {
+      stopifnot(names(df[[i]]) == c("firststart", "firstend", "laststart", "lastend"))
+      rstart <- pmin(df[[i]]$firststart, df[[i]]$laststart)
+      rend <- pmax(df[[i]]$firstend, df[[i]]$lastend)
+    } else {
+      stopifnot(names(df[[i]]) == c("start", "end"))
+      rstart <- df[[i]]$start
+      rend <- df[[i]]$end
+    }
+    
+    chr2gw(chrlen_df$X1[i], bp2bin(ceiling((rstart + rend)/2), bin_width),
+           chrlen_df, bin_width)
+  })
+  reads_gw_vec <- unlist(reads_gw)
+  
+  if (is.null(counts)) counts <- numeric(bin.from[nrow(chrlen_df) + 1])
+  count_bins(counts, reads_gw_vec)
 }
 
 #' Convert tagAlign files to bin counts

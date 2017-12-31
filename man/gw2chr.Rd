@@ -14,4 +14,3 @@ gw2chr(bins, bin.width = 200)
 \description{
 Convert vector of genome wide bin indices to a list of indices per chromosome.
 }
-

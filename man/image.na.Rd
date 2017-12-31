@@ -16,4 +16,3 @@
 \description{
 Wrapper of \link{image} with additional features
 }
-

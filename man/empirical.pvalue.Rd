@@ -17,4 +17,3 @@ empirical.pvalue(null.vec, obs.vec, alternative = c("less", "greater",
 \description{
 Calculate empirical p-values
 }
-

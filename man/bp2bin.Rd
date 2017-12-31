@@ -14,4 +14,3 @@ bp2bin(bp, bin.width)
 \description{
 Convert base pair indices to bin indices
 }
-

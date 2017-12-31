@@ -15,4 +15,3 @@ countReads(align, chrlen.file, chr.count, bin.width, paired = F,
 \description{
 Count reads in bins from GeonomicAlignments object.
 }
-

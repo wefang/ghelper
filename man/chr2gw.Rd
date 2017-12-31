@@ -14,4 +14,3 @@ chr2gw(chr, bins)
 \description{
 Convert chromosome bin indices to genome wide bin indices.
 }
-

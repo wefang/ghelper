@@ -14,4 +14,3 @@ list2gw(bins.ls, bin.width = 200)
 \description{
 Convert a list of indices per chromosome (must have 23 items in list) to a vector of genome wide bin indices
 }
-

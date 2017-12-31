@@ -14,4 +14,3 @@ load.chrlen(chrlen.file, bin.width)
 \description{
 Load chromosome length and bin counts into global environment
 }
-

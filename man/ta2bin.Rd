@@ -12,4 +12,3 @@ ta2bin(ta.file, ...)
 \description{
 Convert tagAlign files to bin counts
 }
-

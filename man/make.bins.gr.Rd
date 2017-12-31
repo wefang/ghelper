@@ -14,4 +14,3 @@ make.bins.gr(chrlen.file, bin.width, chr.count)
 \description{
 Create a \code{\link{GRanges}} object for bins.
 }
-

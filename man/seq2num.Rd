@@ -9,4 +9,3 @@ seq2num(seq)
 \description{
 Convert seqnames to numeric chromosome indices. chrX mapped to 23; chrM and chrY mapped to NAs.
 }
-

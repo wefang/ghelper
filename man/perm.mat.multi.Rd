@@ -9,4 +9,3 @@ perm.mat.multi(...)
 \description{
 Permutate columns of multiple matrix independently
 }
-

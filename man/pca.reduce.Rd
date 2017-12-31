@@ -9,4 +9,3 @@ pca.reduce(mat, pcadim = NULL)
 \description{
 Wrapper for base \link{prcomp}
 }
-
