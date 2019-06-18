@@ -19,27 +19,27 @@ load.chrlen <- function(chrlen_vec, bin.width){
 
 #' Create a \code{\link{GRanges}} object for bins.
 #'
-#' @param chrlen.file Text file for chromosome length
-#' @param bin.width Bin width
+#' @param chrlen_df data.frame for chromosome sizes
+#' @param bin_width Bin width
 #' @export
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors Rle
-make.bins.gr <- function(chrlen.file, bin.width, chr.count){
-    load.chrlen(chrlen.file, bin.width)
-    range.start <- unlist(lapply(bin.counts[1:chr.count], function(count) {
-                                     seq(from = 1, by = bin.width, length = count)
-}))
-    range.end <- range.start + bin.width -1
-    # fix the last bin of each chr
-    for (chr in 1:chr.count){
-        range.end[bin.from[chr+1]] <- chr.len[chr]
-    }
-    # only works for human as of now
-    gr <- GRanges(seqnames = Rle(paste0("chr", c(1:22, "X")), bin.counts[1:chr.count]),
-                  ranges = IRanges(start = range.start, end = range.end))
-    return(gr)
-}
+make_gr_bins <- function (chrlen_df, bin_width) {
+        load.chrlen(chrlen_df$X2, bin_width)
+        range.start <- unlist(lapply(bin.counts[1:nrow(chrlen_df)],
+                                     function(count) {
+                                             seq(from = 1, by = bin_width, length = count)
+                                     }))
+        range.end <- range.start + bin_width - 1
+        for (chr in 1:nrow(chrlen_df)) {
+                range.end[bin.from[chr + 1]] <- chrlen_df$X2[chr]
+        }
+        gr <- GRanges(seqnames = Rle(chrlen_df$X1,
+                                     bin.counts[1:nrow(chrlen_df)]), ranges = IRanges(start = range.start,
+                                                                                      end = range.end))
+        return(gr)
+}                       
 
 #' Convert base pair indices to bin indices
 #'
@@ -158,6 +158,23 @@ aveMatFac <- function(mat, fac){
     }
     rownames(out) <- levels(fac)
     return(out)
+}
+
+#' Sum matrix rows based on a factor
+#'
+#' @export
+sumMatFac <- function(mat, fac){
+        # need to be able to handle character or numeric
+        if(class(fac)!="factor") fac <- factor(fac)
+        rown <- length(levels(fac))
+        coln <- dim(mat)[2]
+        out <- matrix(, rown, coln)
+        ind <- as.numeric(fac)
+        for (i in 1:rown){
+                out[i, ] <- colSums(mat[ind == i, , drop = F], na.rm = T)
+        }
+        rownames(out) <- levels(fac)
+        return(out)
 }
 
 #' Permutate columns of matrix independently
