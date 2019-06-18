@@ -216,7 +216,6 @@ perm.mat.multi <- function(...){
 #' @param paried A logical value indicating if alignment object is paired.
 #' @export
 #' @importFrom GenomicRanges seqnames start end
-#' @useDynLib ghelper ghelper_count_bins
 countReads <- function(align, chrlen.file, chr.count, bin.width, paired = F, counts = NULL){
 
     load.chrlen(chrlen.file, bin.width)
@@ -266,7 +265,6 @@ bam2bin <- function(bam.file, chrlen.file, chr.count, bin.width, paired = F, ...
 #' Convert reads saved as list of data.frames to counts
 #'
 #' @export
-#' @useDynLib ghelper ghelper_count_bins
 df2bin <- function(df, chrlen_df, bin_width, paired = F, counts = NULL) {
   stopifnot(all(chrlen_df$X1 %in% names(df)))
   df <- df[chrlen_df$X1]
