@@ -370,6 +370,53 @@ ta2bin <- function(ta.file, ...) {
         message(paste("number of tags:", length(alignment)))
         countReads(alignment, ...)
 }
+#' Convert string to GR object
+#'
+#' @export
+str_to_gr <- function(regions, sep = c(":", "-"), ...) {
+  ranges.df <- data.frame(ranges = regions)
+  ranges.df <- tidyr::separate(
+    data = ranges.df,
+    col = 'ranges',
+    sep = paste0(sep[1], "|", sep[2]),
+    into = c('chr', 'start', 'end')
+  )
+  granges <- GenomicRanges::makeGRangesFromDataFrame(df = ranges.df, ...)
+  return(granges)
+}
+
+#' Count overlaps of regions and read centers
+#' @export
+df2region <- function(df, chrlen_df, regions_gr, paired = F) {
+    stopifnot(all(chrlen_df$X1 %in% names(df)))
+    reads_gr <- do.call(c, lapply(1:nrow(chrlen_df), function(i) {
+            if (paired) {
+                    stopifnot(
+                            names(df[[i]]) == c(
+                                    "firststart",
+                                    "firstend",
+                                    "laststart",
+                                    "lastend"
+                            )
+                    )
+                    rstart <- pmin(df[[i]]$firststart, df[[i]]$laststart)
+                    rend <- pmax(df[[i]]$firstend, df[[i]]$lastend)
+            } else {
+                    stopifnot(names(df[[i]]) == c("start", "end"))
+                    rstart <- df[[i]]$start
+                    rend <- df[[i]]$end
+            }
+            reads_ctr = ceiling((
+                                   rstart + rend
+                                                  ) / 2)
+            gr_out = GenomicRanges::GRanges(seqnames = chrlen_df$X1[i],
+        IRanges::IRanges(start = reads_ctr,
+            end = reads_ctr))
+            gr_out
+            }))
+    counts_out = GenomicRanges::countOverlaps(regions_gr, reads_gr)
+    counts_out
+}
 
 #' Calculate empirical p-values
 #'
@@ -427,169 +474,4 @@ empirical.pvalue <-
                         }
                 }
                 return(pvalue.vec)
-        }
-
-#' Wrapper for base \link{prcomp}
-#'
-#' @export
-pca.reduce <- function(mat, pcadim = NULL) {
-        if (is.null(pcadim)) {
-                sdev <- prcomp(mat)$sdev[1:20]
-                x <- 1:20
-                optpoint <- which.min(sapply(2:10, function(i) {
-                        x2 <- pmax(0, x - i)
-                        sum(lm(sdev ~ x + x2)$residuals ^ 2)
-                }))
-                pcadim <- optpoint + 1
-        }
-        
-        tmppc <- prcomp(mat)
-        pca.red <- mat %*% tmppc$rotation[, 1:pcadim]
-        pca.red
-}
-
-#' Wrapper of \link{image} with additional features
-#'
-#' @export
-#' @importFrom RColorBrewer brewer.pal
-image.na <-
-        function(z,
-                 zlim,
-                 col = colorRampPalette(brewer.pal(9, "Blues"))(1000),
-                 na.color = grey.colors(1, 0.95),
-                 row.side = NULL,
-                 row.side.col = brewer.pal(8, "Dark2"),
-                 row.lab = NULL,
-                 row.lab.col = NULL,
-                 row.clust = F,
-                 col.clust = F,
-                 outside.below.color = 'black',
-                 outside.above.color = 'white',
-                 rowsep = NULL,
-                 colsep = NULL,
-                 sepcolor = grey.colors(1, 0.95),
-                 sepwidth = 0.02,
-                 cellnote = F,
-                 digit.format = "%0.2f",
-                 text.col = "black",
-                 ...) {
-                zstep <- (zlim[2] - zlim[1]) / length(col)
-                newz.below.outside <- zlim[1] - 2 * zstep
-                newz.above.outside <- zlim[2] + zstep
-                newz.na <- zlim[2] + 2 * zstep
-                
-                z[which(z < zlim[1])] <- newz.below.outside
-                z[which(z > zlim[2])] <- newz.above.outside
-                z[which(is.na(z > zlim[2]))] <- newz.na
-                
-                zlim[1] <- zlim[1] - 2 * zstep
-                zlim[2] <- zlim[2] + 2 * zstep
-                col <-
-                        c(outside.below.color,
-                          col[1],
-                          col,
-                          outside.above.color,
-                          na.color)
-                
-                if (row.clust == T) {
-                        row.ord <- hclust(dist(z))$order
-                } else {
-                        row.ord <- 1:nrow(z)
-                }
-                
-                if (col.clust == T) {
-                        col.ord <- hclust(dist(t(z)))$order
-                } else {
-                        col.ord <- 1:ncol(z)
-                }
-                
-                # side indicator
-                if (!is.null(row.side)) {
-                        layout(matrix(1:2, 1), widths = c(2, 9))
-                        par(mar = c(2, 2, 2 , 2))
-                        image(
-                                x = 1,
-                                y = 1:length(row.side),
-                                z = matrix(row.side[col.ord], 1),
-                                zlim = c(1, max(row.side)),
-                                col = row.side.col,
-                                xlab = "",
-                                ylab = "",
-                                axes = F
-                        )
-                }
-                
-                #     par(mar = c(2, 2, 2 ,7))
-                image(
-                        x = 1:nrow(z),
-                        y = 1:ncol(z),
-                        z = z[row.ord, col.ord, drop = F],
-                        zlim = zlim,
-                        col = col,
-                        xlab = "",
-                        ylab = "",
-                        ...
-                )
-                if (!is.null(row.lab)) {
-                        if (is.null(row.lab.col))
-                                row.lab.col <- rep("black", length(row.lab))
-                        mtext(
-                                row.lab[rev(col.ord)],
-                                side = 4,
-                                at = length(row.lab):1,
-                                las = 1,
-                                col = row.lab.col[rev(col.ord)],
-                                cex = 0.4
-                        )
-                }
-                
-                if (cellnote == T) {
-                        text(
-                                x = row(z),
-                                y = col(z),
-                                labels = sprintf(digit.format, c(z)),
-                                col = text.col,
-                                cex = 0.6
-                        )
-                }
-                
-                if (nrow(z) == 1)
-                        fine <- 0.6
-                else
-                        fine <- 0.5
-                
-                if (!is.null(rowsep)) {
-                        if (ncol(z) > 1) {
-                                for (rsep in rowsep) {
-                                        rect(
-                                                xleft = fine,
-                                                ybottom = (ncol(z) + 1 - rsep) - 0.5,
-                                                xright = nrow(z) + 1 - fine,
-                                                ytop   = (ncol(z) + 1 - rsep) - 0.5 - sepwidth,
-                                                lty = 1,
-                                                lwd = 1,
-                                                col = sepcolor,
-                                                border = sepcolor
-                                        )
-                                }
-                        }
-                }
-                
-                if (!is.null(colsep)) {
-                        if (nrow(z) > 1) {
-                                for (csep in colsep) {
-                                        rect(
-                                                xleft = csep + 0.5,
-                                                ybottom = 0.5,
-                                                xright = csep + 0.5 + 0.01,
-                                                ytop = ncol(z) + 0.5,
-                                                lty = 1,
-                                                lwd = 1,
-                                                col = sepcolor,
-                                                border = sepcolor
-                                        )
-                                }
-                                
-                        }
-                }
         }

@@ -4,8 +4,11 @@
 \alias{empirical.pvalue}
 \title{Calculate empirical p-values}
 \usage{
-empirical.pvalue(null.vec, obs.vec, alternative = c("less", "greater",
-  "two.sided"))
+empirical.pvalue(
+  null.vec,
+  obs.vec,
+  alternative = c("less", "greater", "two.sided")
+)
 }
 \arguments{
 \item{null.vec}{Vector of empirical null distribution}
