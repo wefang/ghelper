@@ -360,6 +360,62 @@ df2bin <-
                 count_bins(counts, reads_gw_vec)
         }
 
+#' Newer version of alignemnt object to counts
+#'
+#' @export
+align2bin <- function(galign, bin_width, chrlen_df) {
+    galign = galign[seqnames(galign) %in% chrlen_df$X1]
+    if(class(galign) == "GAlignmentPairs") {
+        if (!all(galign@first@seqnames == galign@last@seqnames)) {
+            galign = galign[galign@first@seqnames == galign@last@seqnames]
+            warnings("seqname not the same")
+        }
+        r_end = pmax(end(galign@first), end(galign@last))
+        r_start = pmin(start(galign@first), start(galign@last))
+        r_ctr = ceiling((r_start + r_end)/2)
+        spreads = r_end - r_start
+        galign = galign[spreads <= 2000]
+        r_ctr = r_ctr[spreads <= 2000]
+    } else {
+        r_start = start(galign)
+        r_end = end(galign)
+        r_ctr = ceiling((r_start + r_end)/2)
+    }
+    bin_indices = chrlen_df$X1 %>% map(function(chr) {
+        chr2gw(chr, bp2bin(r_ctr[which(seqnames(galign) == chr)], bin_width), chrlen_df, bin_width)
+        }) %>% flatten_dbl()
+    if (is.null(counts)) {
+        counts <- numeric(bin.from[nrow(chrlen_df) + 1])
+    }
+    counts = count_bins(counts, bin_indices)
+}
+
+#' Newer version of alignemnt object to count over regions
+#'
+#' @export
+align2region <- function(galign, regions, chrlen_df) {
+    galign = galign[seqnames(galign) %in% chrlen_df$X1]
+    if(class(galign) == "GAlignmentPairs") {
+        if (!all(galign@first@seqnames == galign@last@seqnames)) {
+            galign = galign[galign@first@seqnames == galign@last@seqnames]
+            warnings("seqname not the same")
+        }
+        r_end = pmax(end(galign@first), end(galign@last))
+        r_start = pmin(start(galign@first), start(galign@last))
+        r_ctr = ceiling((r_start + r_end)/2)
+        spreads = r_end - r_start
+        galign = galign[spreads <= 2000]
+        r_ctr = r_ctr[spreads <= 2000]
+    } else {
+        r_start = start(galign)
+        r_end = end(galign)
+        r_ctr = ceiling((r_start + r_end)/2)
+    }
+    gctr = GRanges(seqnames = seqnames(galign), IRanges::IRanges(start = r_ctr, end = r_ctr))
+    counts = GenomicRanges::countOverlaps(regions, gctr)
+    counts
+}
+
 #' Convert tagAlign files to bin counts
 #'
 #' @param ta.file bam The tagAlign file to be converted.
