@@ -382,7 +382,7 @@ align2bin <- function(galign, bin_width, chrlen_df) {
         r_ctr = ceiling((r_start + r_end)/2)
     }
     bin_indices = chrlen_df$X1 %>% map(function(chr) {
-        chr2gw(chr, bp2bin(r_ctr[which(seqnames(galign) == chr)], bin_width), chrlen_df, bin_width)
+        chr2gw(chr, bp2bin(r_ctr[which(as.logical(seqnames(galign) == chr))], bin_width), chrlen_df, bin_width)
         }) %>% flatten_dbl()
     if (is.null(counts)) {
         counts <- numeric(bin.from[nrow(chrlen_df) + 1])
