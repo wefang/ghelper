@@ -364,7 +364,7 @@ df2bin <-
 #'
 #' @export
 align2bin <- function(galign, bin_width, chrlen_df) {
-    galign = galign[seqnames(galign) %in% chrlen_df$X1]
+    galign = galign[as.character(seqnames(galign)) %in% chrlen_df$X1]
     if(class(galign) == "GAlignmentPairs") {
         if (!all(galign@first@seqnames == galign@last@seqnames)) {
             galign = galign[galign@first@seqnames == galign@last@seqnames]
@@ -394,7 +394,7 @@ align2bin <- function(galign, bin_width, chrlen_df) {
 #'
 #' @export
 align2region <- function(galign, regions, chrlen_df) {
-    galign = galign[seqnames(galign) %in% chrlen_df$X1]
+    galign = galign[as.character(seqnames(galign)) %in% chrlen_df$X1]
     if(class(galign) == "GAlignmentPairs") {
         if (!all(galign@first@seqnames == galign@last@seqnames)) {
             galign = galign[galign@first@seqnames == galign@last@seqnames]
