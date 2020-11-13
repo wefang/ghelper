@@ -9,7 +9,7 @@ Description: Genomics Helper Functions
 License: Creative Commons
 LazyData: TRUE
 Imports:
-    Rcpp (>= 0.12.4),
+    Rcpp,
     GenomicRanges,
     GenomicAlignments,
     IRanges,

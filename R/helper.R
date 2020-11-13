@@ -363,7 +363,7 @@ df2bin <-
 #' Newer version of alignemnt object to counts
 #'
 #' @export
-align2bin <- function(galign, bin_width, chrlen_df) {
+align2bin <- function(galign, bin_width, chrlen_df, counts = NULL) {
     galign = galign[as.character(seqnames(galign)) %in% chrlen_df$X1]
     if(class(galign) == "GAlignmentPairs") {
         if (!all(galign@first@seqnames == galign@last@seqnames)) {
